@@ -21,6 +21,6 @@
   $user_icon = $_SESSION["user_icon"];
   $_SESSION["user_icon"] = $user_icon;
 
- include_once "views/event_edit_view.php";
+include_once "views/event_edit_view.php";
   
   

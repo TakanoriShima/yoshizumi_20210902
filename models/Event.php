@@ -29,64 +29,77 @@
          
      }
      
-     //ユーザー登録メソッド
-     public function save(){
-                try {
-                    $pdo = self::get_connection();
-                    
-                    //新規登録の時
-                    if($this->id === null){
-                        $stmt = $pdo -> prepare("INSERT INTO events (user_id,name,content,place,day,time,image,participants) VALUES (:user_id,:name,:content,:place,:day,:time,:image,:participants)");//変数値を保持しているのでprepare
-                        // バインド処理
-                        $stmt->bindParam(':user_id', $this->user_id, PDO::PARAM_INT);
-                        $stmt->bindParam(':name', $this->name, PDO::PARAM_STR);
-                        $stmt->bindParam(':content', $this->content, PDO::PARAM_STR);
-                        $stmt->bindParam(':place', $this->place, PDO::PARAM_STR);
-                        $stmt->bindParam(':day', $this->day, PDO::PARAM_STR);
-                        $stmt->bindParam(':time', $this->time, PDO::PARAM_STR);
-                        $stmt->bindParam(':image', $this->image, PDO::PARAM_STR);
-                        $stmt->bindParam(':participants', $this->participants, PDO::PARAM_INT);
-                        $stmt->execute();
-                        self::close_connection($pdo, $stmp);
-                        return "イベントの作成が成功しました";
-                    }else{ //更新処理
-                        $stmt = $pdo -> prepare("INSERT INTO events (name,content,place,day,time,image,participants) VALUES (:name,:content,:place,:day,:time,:image,:participants)");//変数値を保持しているのでprepare
-                        
-                        $stmt->bindParam(':name', $this->name, PDO::PARAM_STR);
-                        $stmt->bindParam(':content', $this->content, PDO::PARAM_STR);
-                        $stmt->bindParam(':place', $this->place, PDO::PARAM_STR);
-                        $stmt->bindParam(':day', $this->day, PDO::PARAM_STR);
-                        $stmt->bindParam(':time', $this->time, PDO::PARAM_STR);
-                        $stmt->bindParam(':image', $this->image, PDO::PARAM_STR);
-                        $stmt->bindParam(':participants', $this->participants, PDO::PARAM_INT);
-                        // 実行
-                        $stmt->execute();
-                        self::close_connection($pdo, $stmp);
-                        return "イベント情報を更新しました";
-                        
-                    }
-                    
-                } catch (PDOException $e) {
-                    return 'PDO exception: ' . $e->getMessage();
-                }
+    //イベント登録・更新メソッド
+    public function save(){
+        try {
+            $pdo = self::get_connection();
+            
+            //新規登録の時
+            if($this->id === null){
+                $stmt = $pdo -> prepare("INSERT INTO events (user_id,name,content,place,day,time,image,participants) VALUES (:user_id,:name,:content,:place,:day,:time,:image,:participants)");//変数値を保持しているのでprepare
+                // バインド処理
+                $stmt->bindParam(':user_id', $this->user_id, PDO::PARAM_INT);
+                $stmt->bindParam(':name', $this->name, PDO::PARAM_STR);
+                $stmt->bindParam(':content', $this->content, PDO::PARAM_STR);
+                $stmt->bindParam(':place', $this->place, PDO::PARAM_STR);
+                $stmt->bindParam(':day', $this->day, PDO::PARAM_STR);
+                $stmt->bindParam(':time', $this->time, PDO::PARAM_STR);
+                $stmt->bindParam(':image', $this->image, PDO::PARAM_STR);
+                $stmt->bindParam(':participants', $this->participants, PDO::PARAM_INT);
+                $stmt->execute();
+                self::close_connection($pdo, $stmp);
+                return "イベントの作成が成功しました";
+            }else{ //更新処理
+            
+                // 更新では以下のようなSQLが必要
+                // UPDATE events SET name='ramen', content='ramen', place='tokyo', day='2021-09-22', time='21:50', image='2.jpg', participants=100 WHERE id=1;
+                $stmt = $pdo -> prepare("UPDATE events SET name=:name, content=:content, place=:place, day=:day, time=:time, image=:image, participants=:participants WHERE id=:id");//変数値を保持しているのでprepare
+                // バインド処理
+                $stmt->bindParam(':name', $this->name, PDO::PARAM_STR);
+                $stmt->bindParam(':content', $this->content, PDO::PARAM_STR);
+                $stmt->bindParam(':place', $this->place, PDO::PARAM_STR);
+                $stmt->bindParam(':day', $this->day, PDO::PARAM_STR);
+                $stmt->bindParam(':time', $this->time, PDO::PARAM_STR);
+                $stmt->bindParam(':image', $this->image, PDO::PARAM_STR);
+                $stmt->bindParam(':participants', $this->participants, PDO::PARAM_INT);
+                $stmt->bindParam(':id', $this->id, PDO::PARAM_INT);
+                
+                // 実行
+                $stmt->execute();
+                
+                self::close_connection($pdo, $stmp);
+                
+                return "イベント情報を更新しました";
+            
             }
+        
+        } catch (PDOException $e) {
+            return 'PDO exception: ' . $e->getMessage();
+        }
+    }
      //入力チェック メソッド
      public function validate(){
          $errors = array();
-         if(!preg_match('/^[ぁ-んァ-ヶーa-zA-Z一-龠\s]*$/', $this->name)){
-            $errors[] = '数字、記号は入力できません';
+         if(!preg_match('/^[ぁ-んァ-ヶーa-zA-Z一-龠\s]+|[ 　]+$/', $this->name)){
+            $errors[] = 'イベント名は数字、記号は入力できません';
          }
-         if(!preg_match('/^[ぁ-んァ-ヶーa-zA-Z一-龠\s]*$/', $this->place)){
-            $errors[] = '数字、記号は入力できません';
-         }         
-         if(!preg_match('/^[0-9\s]*$/',$this->day)){
-             $errors[]="数字で入力してください";
-         }         
-         if(!preg_match('/^[0-9\s]*$/',$this->time)){
-             $errors[]="数字で入力してください";
+         if(!preg_match('/^[ぁ-んァ-ヶーa-zA-Z一-龠\s]+|[ 　]+$/', $this->content)){
+            $errors[] = 'イベント内容は、数字、記号は入力できません';
+         } 
+         if(!preg_match('/^[ぁ-んァ-ヶーa-zA-Z一-龠\s]+|[ 　]+$/', $this->place)){
+            $errors[] = 'イベント開催場所は、数字、記号は入力できません';
+         }  
+         if($this->image === ''){
+             $errors[] = '画像を選択してください';
          }
-         if(!preg_match('/^[0-9\s]*$/',$this->participants)){
-             $errors[]="数字で入力してください";
+         if(!preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/',$this->day)){
+             $errors[]="日にちはxxxx-xx-xxの形式で入力してください";
+         }         
+         if(!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/',$this->time)){
+             $errors[]="時刻はxx:xxの形式で入力してください";
+         }
+         if(!preg_match('/^[1-9][0-9]*$/',$this->participants)){
+             $errors[]="参加者人数は0以上の数字で入力してください";
          }         
          return $errors;
      }
