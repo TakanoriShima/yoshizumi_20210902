@@ -68,14 +68,20 @@
      //入力チェック メソッド
      public function validate(){
          $errors = array();
-         if(!preg_match('/^[0-9\s]*$/',$this->age)){
-             $errors[]="数字で入力してください";
+         if(!preg_match('/^[0-9]+$/',$this->age)){
+             $errors[]="年齢は整数で入力してください";
          }
-         if(!preg_match('/^[ぁ-んァ-ヶー一-龠\s]*$/',$this->job)){
-             $errors[]="ひらがな、カタカナ、漢字で入力してください";
+         if($this->gender !== '男性' && $this->gender !== '女性'){
+             $errors[] = '性別を選択してください';
          }
-         if(!preg_match('/^[ぁ-んァ-ヶーa-zA-Z一-龠\s]*$/', $this->country)){
-            $errors[] = '数字、記号は入力できません';
+         if($this->job === ''){
+             $errors[]="仕事内容を入力してください";
+         }
+         if($this->country === ''){
+             $errors[] = '国名を入力してください';
+         }
+         if($this->job === ''){
+             $errors[]="自己紹介を入力してください";
          }
          return $errors;
      }
